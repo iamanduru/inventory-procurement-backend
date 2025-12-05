@@ -5,13 +5,20 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import { ENV } from "./config/env";
 import { errorHandler } from "./middleware/errorHandler";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
+
+
+// NEW: import routers
+import authRouter from "./routes/auth.routes";
+import userRouter from "./routes/user.routes";
 
 const app = express();
 
-//Basic security headers
+// Basic security headers
 app.use(helmet());
 
-//CORS configuration
+// CORS
 app.use(
   cors({
     origin: "*",
@@ -22,20 +29,23 @@ app.use(
 // JSON body parsing
 app.use(express.json());
 
+// Swagger docs
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // HTTP request logging
 if (ENV.NODE_ENV !== "test") {
   app.use(morgan("dev"));
 }
 
-// Basic rate limiting
+// Rate limiting
 const limiter = rateLimit({
-  windowMs: ENV.RATE_LIMIT_WINDOW_MS, // e.g., 15 minutes
-  max: ENV.RATE_LIMIT_MAX, // limit each IP
+  windowMs: ENV.RATE_LIMIT_WINDOW_MS,
+  max: ENV.RATE_LIMIT_MAX,
   message: "Too many requests from this IP, please try again later."
 });
 app.use(limiter);
 
-// Health check route
+// Health check
 app.get("/api/health", (_req, res) => {
   res.json({
     status: "ok",
@@ -44,10 +54,11 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-// TODO: mount feature routes (auth, inventory, procurement, finance) here
+// Mount routes
+app.use("/api/auth", authRouter);
+app.use("/api/users", userRouter);
 
-
-// Error handler (should be last)
+// Error handler
 app.use(errorHandler);
 
 export default app;

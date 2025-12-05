@@ -16,14 +16,18 @@ enum UserRole {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  password    String   // hashed password
-  fullName    String
-  role        UserRole @default(STAFF)
-  department  String?
-  isActive    Boolean  @default(true)
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  password           String   // hashed password
+  fullName           String
+  role               UserRole @default(STAFF)
+  department         String?
+  isActive           Boolean  @default(true)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  mustChangePassword Boolean  @default(false)
+  canChangePassword  Boolean  @default(true)
+  lastLoginAt        DateTime?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }

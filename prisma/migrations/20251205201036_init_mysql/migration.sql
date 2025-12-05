@@ -7,6 +7,9 @@ CREATE TABLE `User` (
     `role` ENUM('ADMIN', 'FINANCE', 'PROCUREMENT', 'STOREKEEPER', 'DEPARTMENT_MANAGER', 'STAFF') NOT NULL DEFAULT 'STAFF',
     `department` VARCHAR(191) NULL,
     `isActive` BOOLEAN NOT NULL DEFAULT true,
+    `mustChangePassword` BOOLEAN NOT NULL DEFAULT false,
+    `canChangePassword` BOOLEAN NOT NULL DEFAULT true,
+    `lastLoginAt` DATETIME(3) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 

@@ -1,3 +1,5 @@
+
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -5,6 +7,8 @@ generator client {
 datasource db {
   provider = "mysql"
 }
+
+//Enums
 
 enum UserRole {
   ADMIN
@@ -14,6 +18,15 @@ enum UserRole {
   DEPARTMENT_MANAGER
   STAFF
 }
+
+enum StockMovementType {
+  OPENING
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+//User model
 
 model User {
   id                 String   @id @default(cuid())
@@ -28,6 +41,99 @@ model User {
   canChangePassword  Boolean  @default(true)
   lastLoginAt        DateTime?
 
+  // Relations
+  stockMovements     StockMovement[] @relation("StockMovementCreatedBy")
+
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+}
+
+
+// Inventory models
+
+model ItemCategory {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  isActive    Boolean @default(true)
+
+  items       Item[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Item {
+  id            String        @id @default(cuid())
+  name          String
+  sku           String?       @unique
+  description   String?
+  unit          String        // e.g. "PCS", "LICENSE", "BOX"
+  isTrackable   Boolean       @default(false) // true if you track individually (laptops)
+  isActive      Boolean       @default(true)
+
+  categoryId    String
+  category      ItemCategory  @relation(fields: [categoryId], references: [id])
+
+  stockLevels   StockLevel[]
+  stockMovements StockMovement[] @relation("StockMovementItem")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([name])
+}
+
+model Warehouse {
+  id          String        @id @default(cuid())
+  name        String
+  code        String        @unique
+  location    String?
+  description String?
+  isActive    Boolean       @default(true)
+
+  stockLevels   StockLevel[]
+  stockMovements StockMovement[] @relation("StockMovementWarehouse")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+}
+
+model StockLevel {
+  id           String    @id @default(cuid())
+  itemId       String
+  warehouseId  String
+  quantity     Decimal   @default(0.0)
+  reorderLevel Decimal   @default(0.0)
+
+  item         Item      @relation(fields: [itemId], references: [id])
+  warehouse    Warehouse @relation(fields: [warehouseId], references: [id])
+
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([itemId, warehouseId])
+}
+
+model StockMovement {
+  id            String            @id @default(cuid())
+  itemId        String
+  warehouseId   String
+  movementType  StockMovementType
+  quantity      Decimal
+  referenceType String?           // e.g. "PURCHASE_ORDER", "ISSUE", "ADJUSTMENT"
+  referenceId   String?           // e.g. PO id, Issue id
+  remarks       String?
+
+  createdById   String
+  createdBy     User              @relation("StockMovementCreatedBy", fields: [createdById], references: [id])
+
+  item          Item              @relation("StockMovementItem", fields: [itemId], references: [id])
+  warehouse     Warehouse         @relation("StockMovementWarehouse", fields: [warehouseId], references: [id])
+
+  createdAt     DateTime @default(now())
+
+  @@index([itemId, warehouseId])
+  @@index([movementType])
 }

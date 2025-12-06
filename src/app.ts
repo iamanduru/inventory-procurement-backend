@@ -12,6 +12,9 @@ import { swaggerSpec } from "./config/swagger";
 // NEW: import routers
 import authRouter from "./routes/auth.routes";
 import userRouter from "./routes/user.routes";
+import itemRouter from "./routes/item.routes";
+import warehouseRouter from "./routes/warehouse.routes";
+
 
 const app = express();
 
@@ -57,6 +60,9 @@ app.get("/api/health", (_req, res) => {
 // Mount routes
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
+app.use("/api/items", itemRouter);
+app.use("/api/warehouses", warehouseRouter);
+
 
 // Error handler
 app.use(errorHandler);
